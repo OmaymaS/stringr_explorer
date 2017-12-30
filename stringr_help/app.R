@@ -9,32 +9,35 @@ dat <- readRDS("dat.rds")
 
 ## UI ----------------------------------
 ui <- fluidPage(theme = shinytheme("flatly"),
-   
-   # Application title
-   titlePanel("Stringr Explorer"),
-   
-   # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-      sidebarPanel(
-        selectInput("want", "I want to",
-                    choices = unique(dat$str_fn_title)),
-        
-        uiOutput("select_level2")
-      ),
-      
-      # Show 
-      mainPanel(
-        tags$h3(textOutput("fn_name")),
-        tags$h4("Usage"),
-        verbatimTextOutput("usage"),
-        tags$h4("Example"),
-        verbatimTextOutput("expr"),
-        tags$h4("Output"),
-        verbatimTextOutput("expr_res")
-        
-
-      )
-   )
+                
+                # Application title
+                titlePanel("Stringr Explorer"),
+                
+                # Sidebar with a slider input for number of bins 
+                sidebarLayout(
+                  sidebarPanel(
+                    selectInput("want", "I want to",
+                                choices = unique(dat$str_fn_title)),
+                    
+                    uiOutput("select_level2")
+                  ),
+                  
+                  # Show 
+                  mainPanel(
+                    
+                    fluidRow(column(width = 12,
+                                    conditionalPanel("input$ex_title",
+                                                     tags$h3(textOutput("fn_name")),
+                                                     tags$h4("Usage"),
+                                                     verbatimTextOutput("usage"),
+                                                     tags$h4("Example"),
+                                                     verbatimTextOutput("expr"),
+                                                     tags$h4("Output"),
+                                                     verbatimTextOutput("expr_res"))
+                    ))
+                    
+                  )
+                )
 )
 
 ## Server -------------------------------------
@@ -53,52 +56,44 @@ server <- function(input, output) {
     req(fn_level2())
     selectInput("ex_title", "", choices = fn_level2())
   })
-   
   
-  # fn_selected <- reactive({
-  #   req(input$want, input$ex_title)
-  #   dat %>% 
-  #     filter(str_fn_title == input$want,
-  #            example_title == input$ex_title)
-  # })
   
+  fn_selected <- reactive({
+    req(input$want, input$ex_title)
+    dat %>%
+      filter(str_fn_title == input$want,
+             example_title == input$ex_title)
+  })
+  
+  ## get selected function name
   f_name <- reactive({
-    req(input$want)
-    dat %>% 
-      filter(str_fn_title == input$want
-             # example_title == input$ex_title
-             ) %>% 
-      pull(str_fn_names) %>% .[1]
+    req(fn_selected)
+    
+    fn_selected() %>% 
+      pull(str_fn_names) 
+    # %>% .[1]
   })
   
   ## print funcion name
   output$fn_name<- renderText({
-     # capture.output(example("str_trunc")) %>%
-     #  gsub("str_tr>|str_tr\\+", "", .) %>%
-     #  cat(sep = "\n")
     f_name()
-    # fn_level2()
   })
   
-  ## get the expression corresponding to the selected function
+  ## panel condition -----------------
+  output$cond <- reactive({
+    req(input$ex_title)
+    input$ex_title
+  })
+  
+  outputOptions(output, "cond", suspendWhenHidden = FALSE) 
+  
+  ## get the expression corresponding to the selected function --------------------
   expression_txt <- reactive({
-    req(dat, input$want, input$ex_title)
+    req(fn_selected())
     
-    # req(f_name(), fn_level2())
-    
-    # if(!is.na(fn_level2())){
-      req(input$ex_title)
-      res <- dat %>%
-        filter(str_fn_title == input$want) %>% 
-        filter(example_title == input$ex_title)
-    # }
-    # 
-    # else{
-    #   res <- dat %>% 
-    #     filter(str_fn_names == f_name())
-    # }
-
-      res %>% pull(example) %>% unique()
+    fn_selected() %>% 
+      pull(example) %>% 
+      unique()
   })
   
   ## print selected expression 
@@ -115,24 +110,15 @@ server <- function(input, output) {
     req(expression_txt())
     parse(text = expression_txt()) %>% eval
   })
-
+  
   output$usage <- renderPrint({
-    req(f_name())
+    req(fn_selected())
     
- # if(!is.na(fn_level2())){
-      req(input$ex_title)
-      res2 <- dat %>%
-        filter(str_fn_title == input$want) %>% 
-        filter(example_title == input$ex_title)
-    # }
-    # 
-    # else{
-    #   res2 <- dat %>% 
-    #     filter(str_fn_names == f_name())
-    # }
-    # 
-    res2 %>%
-      pull(str_fn_usage) %>% unique() %>% unlist() %>% glue()
+    fn_selected() %>% 
+      pull(str_fn_usage) %>% 
+      unique() %>% 
+      unlist() %>% 
+      glue()
   })
 }
 
