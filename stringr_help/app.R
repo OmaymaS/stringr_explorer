@@ -1,21 +1,13 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(shinythemes)
 library(stringr)
 library(glue)
 library(tidyverse)
 
+## read data
 dat <- readRDS("dat.rds")
 
-# Define UI for application that draws a histogram
+## UI ----------------------------------
 ui <- fluidPage(theme = shinytheme("flatly"),
    
    # Application title
@@ -45,7 +37,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
    )
 )
 
-# Define server logic required to draw a histogram
+## Server -------------------------------------
 server <- function(input, output) {
   
   ## get example_title to show in select_level2 selectInput -----------
