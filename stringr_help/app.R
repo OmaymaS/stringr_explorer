@@ -26,7 +26,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                   mainPanel(
                     
                     fluidRow(column(width = 12,
-                                    conditionalPanel("input$ex_title",
+                                    conditionalPanel("output.cond",
                                                      tags$h3(textOutput("fn_name")),
                                                      tags$h4("Usage"),
                                                      verbatimTextOutput("usage"),
@@ -67,7 +67,7 @@ server <- function(input, output) {
   
   ## get selected function name
   f_name <- reactive({
-    req(fn_selected)
+    req(fn_selected())
     
     fn_selected() %>% 
       pull(str_fn_names) 
@@ -81,8 +81,8 @@ server <- function(input, output) {
   
   ## panel condition -----------------
   output$cond <- reactive({
-    req(input$ex_title)
-    input$ex_title
+    req(expression_txt())
+    length(expression_txt())
   })
   
   outputOptions(output, "cond", suspendWhenHidden = FALSE) 
@@ -104,13 +104,13 @@ server <- function(input, output) {
       glue()
   })
   
-  
   ## evaluate and print selected expression 
   output$expr_res <- renderPrint({
     req(expression_txt())
     parse(text = expression_txt()) %>% eval
   })
   
+  ## print function usage
   output$usage <- renderPrint({
     req(fn_selected())
     
