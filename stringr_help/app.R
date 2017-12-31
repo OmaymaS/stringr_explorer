@@ -3,12 +3,14 @@ library(shinythemes)
 library(stringr)
 library(glue)
 library(tidyverse)
+# library(shinyjs)
 
 ## read data
 dat <- readRDS("dat.rds")
 
 ## UI ----------------------------------
 ui <- fluidPage(theme = shinytheme("flatly"),
+                # useShinyjs(),
                 
                 # Application title
                 titlePanel("Stringr Explorer"),
@@ -16,13 +18,16 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                 # Sidebar with a slider input for number of bins 
                 sidebarLayout(
                   sidebarPanel(
+                    
+                    ## 1st level select input
                     selectInput("want", "I want to",
                                 choices = unique(dat$str_fn_title)),
                     
-                    uiOutput("select_level2")
+                    ## 2nd level select input 
+                    conditionalPanel("input.want != input.ex_title",
+                                     uiOutput("select_level2"))
                   ),
                   
-                  # Show 
                   mainPanel(
                     
                     fluidRow(column(width = 12,
