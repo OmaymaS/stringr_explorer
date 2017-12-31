@@ -58,7 +58,7 @@ server <- function(input, output) {
   
   ## 
   output$select_level2 <- renderUI({
-    req(fn_level2(), input$want)
+    req(fn_level2())
     selectInput("ex_title", "", choices = fn_level2())
   })
   
