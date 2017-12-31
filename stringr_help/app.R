@@ -3,14 +3,14 @@ library(shinythemes)
 library(stringr)
 library(glue)
 library(tidyverse)
-# library(shinyjs)
+library(shinyjs)
 
 ## read data
 dat <- readRDS("dat.rds")
 
 ## UI ----------------------------------
 ui <- fluidPage(theme = shinytheme("flatly"),
-                # useShinyjs(),
+                useShinyjs(),
                 
                 # Application title
                 titlePanel("Stringr Explorer"),
@@ -24,8 +24,9 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                 choices = unique(dat$str_fn_title)),
                     
                     ## 2nd level select input 
-                    conditionalPanel("input.want != input.ex_title",
-                                     uiOutput("select_level2"))
+                    uiOutput("select_level2")
+                    # conditionalPanel("input.want != input.ex_title",
+                    #                  uiOutput("select_level2"))
                   ),
                   
                   mainPanel(
@@ -40,7 +41,6 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                      tags$h4("Output"),
                                                      verbatimTextOutput("expr_res"))
                     ))
-                    
                   )
                 )
 )
@@ -58,7 +58,7 @@ server <- function(input, output) {
   
   ## 
   output$select_level2 <- renderUI({
-    req(fn_level2())
+    req(fn_level2(), input$want)
     selectInput("ex_title", "", choices = fn_level2())
   })
   
@@ -76,7 +76,6 @@ server <- function(input, output) {
     
     fn_selected() %>% 
       pull(str_fn_names) 
-    # %>% .[1]
   })
   
   ## print funcion name
