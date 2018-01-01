@@ -6,16 +6,8 @@ library(here)
 ## get stringr functions ---------------------------
 str_fn_names <- ls("package:stringr") 
 
-## exclude data and some values -------------------------
-# str_fn_names_exclude <- c("%>%", "boundary", "coll", "fixed",
-#                           "fruit", "ignore.case", "invert_match" ,
-#                           "perl", "regex", "sentences", "words", "str_sub<-")
-
-## update the str_fn_names vector ---------------------
-# str_fn_names <- setdiff(str_fn_names, str_fn_names_exclude)
-
 ## get stringr functions help -------------------------
-str_fn_help <- map(str_fn_names,  ~ utils:::.getHelpFile(help(.x, package = "stringr"))) 
+str_fn_help <- map(str_fn_names,  ~ utils:::.getHelpFile(help(.x, package = "stringr")))
 
 ## get stringr functions title ------------------------
 str_fn_title <- map_chr(str_fn_help, ~ tools:::.Rd_get_metadata(.x, "title")) 
