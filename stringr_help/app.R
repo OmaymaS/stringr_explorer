@@ -57,41 +57,6 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 ## Server -------------------------------------
 server <- function(input, output, session) {
   
-  ## get example_title to show in select_level2 selectInput -----------
-  fn_level2 <- reactive({
-    req(input$want)
-    dat %>% 
-      filter(str_fn_title == input$want) %>% 
-      pull(example_title)
-  })
-  
-  ## 
-  output$select_level2 <- renderUI({
-    req(fn_level2())
-    selectInput("ex_title", "", choices = fn_level2())
-  })
-  
-  
-  fn_selected <- reactive({
-    req(input$want, input$ex_title)
-    dat %>%
-      filter(str_fn_title == input$want,
-             example_title == input$ex_title)
-  })
-  
-  ## get selected function name
-  f_name <- reactive({
-    req(fn_selected())
-    
-    fn_selected() %>% 
-      pull(str_fn_names) 
-  })
-  
-  ## print funcion name
-  output$fn_name<- renderText({
-    f_name()
-  })
-  
   ## panel condition -----------------
   output$cond <- reactive({
     req(expression_txt())
@@ -100,12 +65,38 @@ server <- function(input, output, session) {
   
   outputOptions(output, "cond", suspendWhenHidden = FALSE) 
   
+  ## get example_title to show in select_level2 selectInput -----------
+  fn_level2 <- reactive({
+    req(input$want)
+    dat %>% 
+      filter(str_fn_title == input$want) %>% 
+      pull(example_title)
+  })
+  
+  ## selectInput including level2 choices ------------------------
+  output$select_level2 <- renderUI({
+    req(fn_level2())
+    selectInput("ex_title", "", choices = fn_level2())
+  })
+  
+  ## get the row corresponding to the selected values
+  fn_selected <- reactive({
+    req(input$want, input$ex_title)
+    dat %>%
+      filter(str_fn_title == input$want,
+             example_title == input$ex_title)
+  })
+  
+  ## print funcion name
+  output$fn_name<- renderText({
+    fn_selected()[["str_fn_names"]]
+  })
+  
   ## get the expression corresponding to the selected function --------------------
   expression_txt <- reactive({
     req(fn_selected())
     
-    fn_selected() %>% 
-      pull(example) %>% 
+    fn_selected()[["example"]] %>% 
       unique()
   })
   
@@ -117,7 +108,7 @@ server <- function(input, output, session) {
       glue()
   })
   
-  ## evaluate and print selected expression 
+  ## evaluate selected expression and print the result
   output$expr_res <- renderPrint({
     req(expression_txt())
     parse(text = expression_txt()) %>% eval
@@ -127,8 +118,7 @@ server <- function(input, output, session) {
   output$usage <- renderPrint({
     req(fn_selected())
     
-    fn_selected() %>% 
-      pull(str_fn_usage) %>% 
+    fn_selected()[["str_fn_usage"]] %>% 
       unique() %>% 
       unlist() %>% 
       glue()
