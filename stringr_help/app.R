@@ -4,6 +4,7 @@ library(stringr)
 library(glue)
 library(tidyverse)
 library(shinyjs)
+library(shinyBS)
 
 ## read data
 dat <- readRDS("dat.rds")
@@ -25,28 +26,36 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                     
                     ## 2nd level select input 
                     uiOutput("select_level2")
-                    # conditionalPanel("input.want != input.ex_title",
-                    #                  uiOutput("select_level2"))
                   ),
-                  
+                  ## Main panel -----------------------------------------------------
                   mainPanel(
-                    
                     fluidRow(column(width = 12,
                                     conditionalPanel("output.cond",
+                                                     ## function name
                                                      tags$h3(textOutput("fn_name")),
+                                                     ## function usage
                                                      tags$h4("Usage"),
                                                      verbatimTextOutput("usage"),
+                                                     ## function example
                                                      tags$h4("Example"),
                                                      verbatimTextOutput("expr"),
+                                                     ## function example output
                                                      tags$h4("Output"),
-                                                     verbatimTextOutput("expr_res"))
+                                                     verbatimTextOutput("expr_res"),
+                                                     
+                                                     ## bootstrap collapse to include documentation (default: closed)
+                                                     bsCollapse(id = "doc_collapse",
+                                                                # open = "R_Documentation",
+                                                                bsCollapsePanel("R_Documentation",
+                                                                                htmlOutput("doc"),
+                                                                                style = "info")))
                     ))
                   )
                 )
 )
 
 ## Server -------------------------------------
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   ## get example_title to show in select_level2 selectInput -----------
   fn_level2 <- reactive({
@@ -124,6 +133,16 @@ server <- function(input, output) {
       unlist() %>% 
       glue()
   })
+  
+  ##print doc for selected function
+  output$doc <- renderPrint({
+    req(nrow(fn_selected())>0)
+    tools:::Rd2HTML(fn_selected()$str_fn_help[[1]])
+  })
+  
+  # observeEvent(input$want, ({
+  #   updateCollapse(session, "doc_collapse", close = "R_Documentation")
+  # }))
 }
 
 # Run the application 
